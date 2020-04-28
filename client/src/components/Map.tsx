@@ -3,6 +3,7 @@ import Leaflet, { LeafletMouseEvent } from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import { MapMarker } from "./MapMarker";
+import { MapCircle } from "./MapCircle";
 
 import "./Map.scss";
 
@@ -22,8 +23,10 @@ interface MapProps {
   longitude: number;
   initLatitude: number;
   initLongitude: number;
-  markers?: [];
-  fetchData?: any;
+  range: number;
+  markers: [];
+  fetchData: any;
+  setCoords: any;
 }
 
 enum EMapStatus {
@@ -38,9 +41,10 @@ export const Map: React.FC<MapProps> = ({
   initLongitude,
   markers,
   fetchData,
+  range,
+  setCoords,
 }) => {
   const mapRef = useRef<Leaflet.Map | null>(null);
-  const circleRef = useRef<Leaflet.Circle | null>(null);
   const [mapStatus, setMapStatus] = useState<EMapStatus>(EMapStatus.Init);
 
   useEffect(() => {
@@ -57,37 +61,20 @@ export const Map: React.FC<MapProps> = ({
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(mapRef.current);
 
-      circleRef.current = Leaflet.circle([initLatitude, initLongitude], {
-        color: "#ff5722",
-        fillColor: "transparent",
-        radius: 500,
-        opacity: 0.5,
-      }).addTo(mapRef.current);
-
       // Setup events
       mapRef.current.on("click", (e: LeafletMouseEvent) => {
         if (mapRef.current) {
           mapRef.current.panTo([e.latlng.lat, e.latlng.lng]);
 
-          if (circleRef.current) {
-            mapRef.current.removeLayer(circleRef.current);
-          }
-
-          circleRef.current = Leaflet.circle([e.latlng.lat, e.latlng.lng], {
-            color: "#ff5722",
-            fillColor: "transparent",
-            radius: 500,
-            opacity: 0.5,
-          }).addTo(mapRef.current);
-
-          fetchData(e.latlng.lat, e.latlng.lng); // Don't include in deps unless we want a loop
+          // Update coords
+          setCoords(e.latlng.lat, e.latlng.lng);
         }
       });
 
       // Map is ready
       setMapStatus(EMapStatus.Loaded);
     }
-  }, [mapStatus, initLatitude, initLongitude]);
+  }, [mapStatus, initLatitude, initLongitude, range]);
 
   // Move map and fetch data
   // when the latitude and longitude change
@@ -97,32 +84,30 @@ export const Map: React.FC<MapProps> = ({
       mapStatus === EMapStatus.Loaded &&
       mapRef.current &&
       latitude &&
-      longitude
+      longitude &&
+      range
     ) {
       mapRef.current.panTo([latitude, longitude]);
 
-      if (circleRef.current) {
-        mapRef.current.removeLayer(circleRef.current);
-      }
-
-      circleRef.current = Leaflet.circle([latitude, longitude], {
-        color: "#ff5722",
-        fillColor: "transparent",
-        radius: 500,
-        opacity: 0.5,
-      }).addTo(mapRef.current);
-
-      fetchData(latitude, longitude); // Don't include in deps unless we want a loop
+      // Tell parent to fetch data
+      fetchData(latitude, longitude, range); // Don't include in deps unless we want a loop
     }
-  }, [mapStatus, latitude, longitude]);
+  }, [mapStatus, latitude, longitude, range]);
 
   return (
     <div className="map">
       <div id="mapid" className="map__wrapper">
-        {mapStatus === EMapStatus.Loaded &&
-          mapRef.current &&
-          markers &&
-          renderMarkers([...markers], mapRef.current)}
+        {mapStatus === EMapStatus.Loaded && mapRef.current && markers && (
+          <>
+            <MapCircle
+              latitude={latitude || initLatitude}
+              longitude={longitude || initLongitude}
+              range={range}
+              mapRef={mapRef.current}
+            />
+            {renderMarkers([...markers], mapRef.current)}{" "}
+          </>
+        )}
       </div>
     </div>
   );

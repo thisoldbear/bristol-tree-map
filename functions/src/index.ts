@@ -20,9 +20,10 @@ app.get("/", (req: any, res: any) => {
 app.get("/trees", async (req: any, res: any) => {
   const latitude = req.query.latitude;
   const longitude = req.query.longitude;
+  const range = req.query.range;
 
   await fetch(
-    `https://bristoltrees.space/trees/ajax/trees-in-range.xq?latitude=${latitude}&longitude=${longitude}&range=${500}`,
+    `https://bristoltrees.space/trees/ajax/trees-in-range.xq?latitude=${latitude}&longitude=${longitude}&range=${range}`,
     {
       method: "GET",
     }

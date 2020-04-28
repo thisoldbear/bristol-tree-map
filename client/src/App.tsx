@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import "./App.scss";
 
 import { Map } from "./components/Map";
+import { SearchForm } from "./components/SearchForm";
 
 function App() {
   const initLatitude = 51.4532;
@@ -14,11 +15,12 @@ function App() {
   });
 
   const [trees, setTrees] = useState<any>([]);
+  const [range, setRange] = useState<number>(500);
 
-  const fetchData = (latitude: number, longitude: number) => {
+  const fetchData = (latitude: number, longitude: number, range: number) => {
     setTrees([]);
 
-    const data = fetch(`/trees?latitude=${latitude}&longitude=${longitude}`)
+    const data = fetch(`/trees?latitude=${latitude}&longitude=${longitude}&range=${range}`)
       .then((res) => res.json())
       .then((res) => setTrees(res && res.tree ? [...res.tree] : []));
 
@@ -26,8 +28,8 @@ function App() {
   };
 
   useEffect(() => {
-    fetchData(initLatitude, initLongitude);
-  }, [initLatitude, initLongitude]);
+    fetchData(initLatitude, initLongitude, range);
+  }, []);
 
   return (
     <div className="app">
@@ -45,6 +47,16 @@ function App() {
         >
           Use my location
         </button>
+        <p>Or click on the map to pick a new search center.</p>
+        <hr />
+        <SearchForm initialValue={500} updateRange={(range: number) => {
+          setRange(range);
+
+          setCoords({
+            latitude: coords.latitude || initLatitude,
+            longitude: coords?.longitude || initLongitude,
+          });
+        }} />
       </div>
       <div className="app__map">
         <Map
@@ -53,7 +65,11 @@ function App() {
           initLatitude={initLatitude}
           initLongitude={initLongitude}
           markers={trees}
+          range={range}
           fetchData={fetchData}
+          setCoords={(latitude: number, longitude: number) => {
+            setCoords({latitude, longitude})
+          }}
         />
       </div>
     </div>
