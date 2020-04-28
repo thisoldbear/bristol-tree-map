@@ -1,0 +1,22 @@
+{
+  "name": "tree-map",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thisoldbear/bristol-tree-map.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thisoldbear/bristol-tree-map/issues"
+  },
+  "homepage": "https://github.com/thisoldbear/bristol-tree-map#readme",
+  "dependencies": {
+    "firebase-tools": "^8.2.0"
+  }
+}
