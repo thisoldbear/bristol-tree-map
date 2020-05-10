@@ -17,10 +17,14 @@ function App() {
   const [trees, setTrees] = useState<any>([]);
   const [range, setRange] = useState<number>(500);
 
+  const [usingLocation, setUsingLocation] = useState<boolean>(false);
+
   const fetchData = (latitude: number, longitude: number, range: number) => {
     setTrees([]);
 
-    const data = fetch(`/trees?latitude=${latitude}&longitude=${longitude}&range=${range}`)
+    const data = fetch(
+      `/trees?latitude=${latitude}&longitude=${longitude}&range=${range}`
+    )
       .then((res) => res.json())
       .then((res) => setTrees(res && res.tree ? [...res.tree] : []));
 
@@ -31,6 +35,33 @@ function App() {
     fetchData(initLatitude, initLongitude, range);
   }, []);
 
+  useEffect(() => {
+    let interval: any;
+
+    if (usingLocation) {
+      interval = setInterval(() => {
+        console.log("Get position");
+
+        navigator.geolocation.getCurrentPosition((position) => {
+          if (position.coords.latitude !== coords.latitude) {
+            console.log("User moved");
+
+            setCoords({ latitude: null, longitude: null });
+
+            if (position?.coords) {
+              setCoords(position.coords);
+              setUsingLocation(true);
+            }
+          } else {
+            console.log("Not moved");
+          }
+        });
+      }, 5000);
+    }
+
+    return () => clearInterval(interval);
+  }, [usingLocation]);
+
   return (
     <div className="app">
       <div className="app__sidebar">
@@ -39,24 +70,29 @@ function App() {
           onClick={() => {
             navigator.geolocation.getCurrentPosition((position) => {
               setCoords({ latitude: null, longitude: null });
+
               if (position?.coords) {
                 setCoords(position.coords);
+                setUsingLocation(true);
               }
             });
           }}
         >
-          Use my location
+          {usingLocation ? "Stop using" : "Start using "} my location
         </button>
         <p>Or click on the map to pick a new search center.</p>
         <hr />
-        <SearchForm initialValue={500} updateRange={(range: number) => {
-          setRange(range);
+        <SearchForm
+          initialValue={500}
+          updateRange={(range: number) => {
+            setRange(range);
 
-          setCoords({
-            latitude: coords.latitude || initLatitude,
-            longitude: coords?.longitude || initLongitude,
-          });
-        }} />
+            setCoords({
+              latitude: coords.latitude || initLatitude,
+              longitude: coords?.longitude || initLongitude,
+            });
+          }}
+        />
       </div>
       <div className="app__map">
         <Map
@@ -68,7 +104,7 @@ function App() {
           range={range}
           fetchData={fetchData}
           setCoords={(latitude: number, longitude: number) => {
-            setCoords({latitude, longitude})
+            setCoords({ latitude, longitude });
           }}
         />
       </div>
