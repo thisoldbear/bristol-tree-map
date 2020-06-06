@@ -5,9 +5,17 @@ import "./App.scss";
 import { Map } from "./components/Map";
 import { SearchForm } from "./components/SearchForm";
 
+enum EAppStatus {
+  Idle,
+  Loading,
+  Error,
+}
+
 function App() {
   const initLatitude = 51.4532;
   const initLongitude = -2.5973;
+
+  const [status, setStatus] = useState<EAppStatus>(EAppStatus.Idle);
 
   const [coords, setCoords] = useState<any>({
     latitude: null,
@@ -20,15 +28,36 @@ function App() {
   const [usingLocation, setUsingLocation] = useState<boolean>(false);
 
   const fetchData = (latitude: number, longitude: number, range: number) => {
-    setTrees([]);
+    setStatus(EAppStatus.Loading);
 
-    const data = fetch(
+    return fetch(
       `/trees?latitude=${latitude}&longitude=${longitude}&range=${range}`
     )
       .then((res) => res.json())
-      .then((res) => setTrees(res && res.tree ? [...res.tree] : []));
+      .then((res) => {
+        let uniqueTrees: Tree[] = [];
+        let uniqueResults: KeyedTree = {};
 
-    return data;
+        // Crude duplicate ID check
+        uniqueResults = res.tree.reduce(
+          (acc: KeyedTree, curr: Tree) =>
+            !acc[curr.id]
+              ? {
+                  [curr.id]: curr,
+                  ...acc,
+                }
+              : acc,
+          {}
+        );
+
+        uniqueTrees = Object.entries(uniqueResults).map(
+          ([, value]) => value as Tree
+        );
+
+        setTrees(uniqueTrees);
+
+        setStatus(EAppStatus.Idle);
+      });
   };
 
   useEffect(() => {
@@ -108,6 +137,11 @@ function App() {
           }}
         />
       </div>
+      {status === EAppStatus.Loading && (
+        <div className="app__loader">
+          <p>Loading</p>
+        </div>
+      )}
     </div>
   );
 }

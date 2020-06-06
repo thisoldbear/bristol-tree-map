@@ -105,7 +105,7 @@ export const Map: React.FC<MapProps> = ({
               range={range}
               mapRef={mapRef.current}
             />
-            {renderMarkers([...markers], mapRef.current)}{" "}
+            {renderMarkers([...markers], mapRef.current)}
           </>
         )}
       </div>

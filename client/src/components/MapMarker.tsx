@@ -6,7 +6,12 @@ const icon = Leaflet.icon({
   iconSize: [32, 32],
 });
 
-export const MapMarker: React.FC<IMapMarkerProps> = ({ id, latitude, longitude, map }) => {
+export const MapMarker: React.FC<IMapMarkerProps> = ({
+  id,
+  latitude,
+  longitude,
+  map,
+}) => {
   const marker = useRef<Leaflet.Marker | null>(null);
 
   useEffect(() => {
